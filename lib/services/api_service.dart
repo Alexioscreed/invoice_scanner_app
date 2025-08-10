@@ -197,7 +197,7 @@ class ApiService {
     }
   }
 
-  Future<UploadResponse> uploadInvoice(File file) async {
+  Future<Invoice> uploadInvoice(File file) async {
     try {
       String fileName = file.path.split('/').last;
       FormData formData = FormData.fromMap({
@@ -210,7 +210,7 @@ class ApiService {
         options: Options(headers: {'Content-Type': 'multipart/form-data'}),
       );
 
-      return UploadResponse.fromJson(response.data);
+      return Invoice.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleDioError(e);
     }

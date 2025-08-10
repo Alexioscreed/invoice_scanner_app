@@ -107,7 +107,7 @@ class InvoiceService {
     }
   }
 
-  Future<UploadResponse> uploadInvoice(File file) async {
+  Future<Invoice> uploadInvoice(File file) async {
     try {
       // Validate file size
       final fileSize = await file.length();
@@ -128,14 +128,6 @@ class InvoiceService {
       }
 
       return await _apiService.uploadInvoice(file);
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  Future<ProcessingStatusResponse> getProcessingStatus(String uploadId) async {
-    try {
-      return await _apiService.getProcessingStatus(uploadId);
     } catch (e) {
       throw e;
     }
@@ -291,28 +283,8 @@ class InvoiceService {
   Future<Invoice> processOcrDocument(String filePath) async {
     try {
       final file = File(filePath);
-      final uploadResponse = await _apiService.uploadInvoice(file);
-
-      if (uploadResponse.uploadId == null) {
-        throw Exception('Upload failed: No upload ID received');
-      }
-
-      // Poll for processing completion
-      ProcessingStatusResponse status;
-      do {
-        await Future.delayed(const Duration(seconds: 2));
-        status = await _apiService.getProcessingStatus(
-          uploadResponse.uploadId!,
-        );
-      } while (status.status == 'PROCESSING');
-
-      if (status.status == 'COMPLETED' && status.invoiceId != null) {
-        return await getInvoice(status.invoiceId!);
-      } else {
-        throw Exception(
-          'OCR processing failed: ${status.error ?? 'Unknown error'}',
-        );
-      }
+      final invoice = await _apiService.uploadInvoice(file);
+      return invoice;
     } catch (e) {
       throw e;
     }
