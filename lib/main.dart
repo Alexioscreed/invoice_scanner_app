@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'config/app_config.dart';
 import 'models/invoice.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
@@ -21,6 +22,9 @@ import 'screens/notifications_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Print app configuration for debugging
+  AppConfig.printConfig();
 
   // Initialize services
   await StorageService().init();
@@ -44,7 +48,7 @@ class InvoiceScannerApp extends StatelessWidget {
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           return MaterialApp.router(
-            title: 'Invoice Scanner',
+            title: AppConfig.appName,
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               primarySwatch: Colors.blue,

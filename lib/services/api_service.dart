@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/app_config.dart';
 import '../constants/app_constants.dart';
 import '../models/auth_models.dart';
 import '../models/api_models.dart';
@@ -17,11 +18,15 @@ class ApiService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   void init() {
+    // Print configuration for debugging
+    AppConfig.printConfig();
+
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppConstants.baseUrl,
-        connectTimeout: Duration(seconds: AppConstants.connectionTimeout),
-        receiveTimeout: Duration(seconds: AppConstants.receiveTimeout),
+        baseUrl: AppConfig.baseApiUrl,
+        connectTimeout: Duration(seconds: AppConfig.connectionTimeout),
+        receiveTimeout: Duration(seconds: AppConfig.receiveTimeout),
+        sendTimeout: Duration(seconds: AppConfig.sendTimeout),
         headers: {'Content-Type': 'application/json'},
       ),
     );
@@ -30,17 +35,35 @@ class ApiService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _storage.read(key: AppConstants.tokenKey);
+          final token = await _storage.read(key: AppConfig.tokenStorageKey);
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+          if (AppConfig.enableDebugLogs) {
+            print('API Request: ${options.method} ${options.uri}');
+          }
           handler.next(options);
         },
+        onResponse: (response, handler) {
+          if (AppConfig.enableDebugLogs) {
+            print(
+              'API Response: ${response.statusCode} ${response.requestOptions.uri}',
+            );
+          }
+          handler.next(response);
+        },
         onError: (error, handler) async {
+          if (AppConfig.enableDetailedErrorLogs) {
+            print(
+              'API Error: ${error.response?.statusCode} ${error.requestOptions.uri}',
+            );
+            print('Error Message: ${error.message}');
+          }
+
           if (error.response?.statusCode == 401) {
             // Token expired, clear storage and redirect to login
-            await _storage.delete(key: AppConstants.tokenKey);
-            await _storage.delete(key: AppConstants.userKey);
+            await _storage.delete(key: AppConfig.tokenStorageKey);
+            await _storage.delete(key: AppConfig.userStorageKey);
           }
           handler.next(error);
         },
@@ -60,10 +83,7 @@ class ApiService {
   // Auth APIs
   Future<AuthResponse> login(LoginRequest request) async {
     try {
-      final response = await _dio.post(
-        '${AppConstants.authEndpoint}/login',
-        data: request.toJson(),
-      );
+      final response = await _dio.post('/auth/login', data: request.toJson());
       return AuthResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleDioError(e);
@@ -73,7 +93,7 @@ class ApiService {
   Future<AuthResponse> register(RegisterRequest request) async {
     try {
       final response = await _dio.post(
-        '${AppConstants.authEndpoint}/register',
+        '/auth/register',
         data: request.toJson(),
       );
       return AuthResponse.fromJson(response.data);

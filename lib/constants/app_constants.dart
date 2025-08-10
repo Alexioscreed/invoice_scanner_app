@@ -1,20 +1,22 @@
-class AppConstants {
-  // API Configuration
-  static const String baseUrl = 'http://localhost:8080/api';
-  static const String authEndpoint = '/auth';
-  static const String invoicesEndpoint = '/invoices';
-  static const String notificationsEndpoint = '/notifications';
-  static const String usersEndpoint = '/users';
+import '../config/app_config.dart';
 
-  // Storage Keys
-  static const String tokenKey = 'auth_token';
-  static const String userKey = 'user_data';
+class AppConstants {
+  // API Configuration - now using AppConfig
+  static String get baseUrl => AppConfig.baseApiUrl;
+  static String get authEndpoint => AppConfig.authEndpoint;
+  static String get invoicesEndpoint => AppConfig.invoicesEndpoint;
+  static String get notificationsEndpoint => AppConfig.notificationsEndpoint;
+  static String get usersEndpoint => AppConfig.usersEndpoint;
+
+  // Storage Keys - using AppConfig
+  static String get tokenKey => AppConfig.tokenStorageKey;
+  static String get userKey => AppConfig.userStorageKey;
   static const String themeKey = 'theme_mode';
   static const String languageKey = 'language';
 
-  // File Upload
-  static const int maxFileSize = 10 * 1024 * 1024; // 10MB
-  static const List<String> allowedImageTypes = ['jpg', 'jpeg', 'png'];
+  // File Upload - using AppConfig
+  static int get maxFileSize => AppConfig.maxFileSize;
+  static List<String> get allowedImageTypes => AppConfig.allowedImageTypes;
   static const List<String> allowedDocumentTypes = ['pdf'];
 
   // Categories
@@ -32,10 +34,10 @@ class AppConstants {
     'Other',
   ];
 
-  // Pagination
-  static const int defaultPageSize = 20;
+  // Pagination - using AppConfig
+  static int get defaultPageSize => AppConfig.defaultPageSize;
 
-  // Timeouts
-  static const int connectionTimeout = 30; // seconds
-  static const int receiveTimeout = 30; // seconds
+  // Timeouts - using AppConfig
+  static int get connectionTimeout => AppConfig.connectionTimeout;
+  static int get receiveTimeout => AppConfig.receiveTimeout;
 }
