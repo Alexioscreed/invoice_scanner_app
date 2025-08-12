@@ -13,17 +13,21 @@ import 'providers/notification_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
+import 'screens/forgot_password_screen.dart';
+import 'screens/reset_password_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/invoice_list_screen.dart';
 import 'screens/invoice_detail_screen.dart';
 import 'screens/add_invoice_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'utils/logger.dart';
+import 'utils/navigation_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Print app configuration for debugging
+  AppLogger.info('🚀 Starting Invoice Scanner App', context: 'Main');
   AppConfig.printConfig();
 
   // Initialize services
@@ -83,12 +87,24 @@ class InvoiceScannerApp extends StatelessWidget {
 
 final GoRouter _router = GoRouter(
   initialLocation: '/',
+  observers: [AppNavigationObserver()],
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/reset-password/:token',
+      builder: (context, state) {
+        final token = state.pathParameters['token'] ?? '';
+        return ResetPasswordScreen(token: token);
+      },
     ),
     GoRoute(
       path: '/dashboard',

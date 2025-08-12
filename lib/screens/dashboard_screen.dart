@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../providers/invoice_provider.dart';
 import '../providers/notification_provider.dart';
@@ -47,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/notifications');
+                      context.go('/notifications');
                     },
                   ),
                   if (notificationProvider.hasUnread)
@@ -81,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              Navigator.of(context).pushNamed('/settings');
+              context.go('/settings');
             },
           ),
         ],
@@ -187,7 +188,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'Scan Invoice',
                       icon: Icons.camera_alt,
                       onTap: () {
-                        Navigator.of(context).pushNamed('/scan');
+                        // Redirect to add-invoice since scan route doesn't exist
+                        context.go('/add-invoice');
                       },
                     ),
                   ),
@@ -197,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'Add Manual',
                       icon: Icons.add,
                       onTap: () {
-                        Navigator.of(context).pushNamed('/add-invoice');
+                        context.go('/add-invoice');
                       },
                     ),
                   ),
@@ -207,7 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'View All',
                       icon: Icons.list,
                       onTap: () {
-                        Navigator.of(context).pushNamed('/invoices');
+                        context.go('/invoices');
                       },
                     ),
                   ),
@@ -314,10 +316,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                               onTap: () {
-                                Navigator.of(context).pushNamed(
-                                  '/invoice-detail',
-                                  arguments: invoice.id,
-                                );
+                                context.go('/invoice-detail/${invoice.id}');
                               },
                             ),
                           ),
@@ -332,7 +331,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).pushNamed('/scan');
+          // Redirect to add-invoice since scan route doesn't exist
+          context.go('/add-invoice');
         },
         child: const Icon(Icons.camera_alt),
       ),

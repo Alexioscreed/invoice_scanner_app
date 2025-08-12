@@ -8,6 +8,7 @@ import '../models/api_models.dart';
 import '../models/user.dart';
 import '../models/invoice.dart';
 import '../models/notification.dart';
+import '../utils/logger.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -18,7 +19,7 @@ class ApiService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   void init() {
-    // Print configuration for debugging
+    AppLogger.info('🚀 Initializing API Service', context: 'ApiService');
     AppConfig.printConfig();
 
     _dio = Dio(
@@ -31,7 +32,7 @@ class ApiService {
       ),
     );
 
-    // Add interceptor for token
+    // Add interceptor for token and logging
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -39,23 +40,52 @@ class ApiService {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          if (AppConfig.enableDebugLogs) {
-            print('API Request: ${options.method} ${options.uri}');
-          }
+
+          AppLogger.logApiRequest(
+            method: options.method,
+            url: options.uri.toString(),
+            headers: options.headers,
+            body: options.data,
+          );
+
           handler.next(options);
         },
         onResponse: (response, handler) {
-          if (AppConfig.enableDebugLogs) {
-            print(
-              'API Response: ${response.statusCode} ${response.requestOptions.uri}',
-            );
-          }
+          final endTime = DateTime.now();
+          final startTime =
+              response.requestOptions.extra['start_time'] as DateTime? ??
+              endTime;
+          final duration = endTime.difference(startTime);
+
+          AppLogger.logApiResponse(
+            method: response.requestOptions.method,
+            url: response.requestOptions.uri.toString(),
+            statusCode: response.statusCode ?? 0,
+            duration: duration,
+            response: response.data,
+          );
+
           handler.next(response);
         },
         onError: (error, handler) async {
+          final endTime = DateTime.now();
+          final startTime =
+              error.requestOptions.extra['start_time'] as DateTime? ?? endTime;
+          final duration = endTime.difference(startTime);
+
+          AppLogger.logApiResponse(
+            method: error.requestOptions.method,
+            url: error.requestOptions.uri.toString(),
+            statusCode: error.response?.statusCode ?? 0,
+            duration: duration,
+            response: error.response?.data,
+          );
+
           if (AppConfig.enableDetailedErrorLogs) {
-            print(
-              'API Error: ${error.response?.statusCode} ${error.requestOptions.uri}',
+            AppLogger.error(
+              'API Error Details: ${error.message}',
+              context: 'ApiService',
+              error: error,
             );
             print('Error Message: ${error.message}');
           }
@@ -117,6 +147,17 @@ class ApiService {
     try {
       await _dio.post(
         '${AppConstants.authEndpoint}/reset-password',
+        data: request.toJson(),
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<void> resetPassword(ResetPasswordRequest request) async {
+    try {
+      await _dio.post(
+        '${AppConstants.authEndpoint}/reset-password/confirm',
         data: request.toJson(),
       );
     } on DioException catch (e) {

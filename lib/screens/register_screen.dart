@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -41,7 +42,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (success && mounted) {
-        Navigator.of(context).pushReplacementNamed('/verify-email');
+        // After registration, redirect to login page with success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Registration successful! Please check your email to verify your account, then log in.',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        context.go('/login');
       }
     }
   }
@@ -257,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const Text('Already have an account? '),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacementNamed('/login');
+                        context.go('/login');
                       },
                       child: const Text('Sign In'),
                     ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../utils/logger.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +18,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    AppLogger.info('📱 Login screen initialized', context: 'LoginScreen');
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -24,6 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      AppLogger.auth(
+        'User attempting to log in with email: ${_emailController.text}',
+      );
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       final success = await authProvider.login(
@@ -33,9 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (success && mounted) {
         if (authProvider.isEmailVerified) {
-          Navigator.of(context).pushReplacementNamed('/dashboard');
+          context.go('/dashboard');
         } else {
-          Navigator.of(context).pushReplacementNamed('/verify-email');
+          // For now, go to dashboard since verify-email route doesn't exist
+          context.go('/dashboard');
         }
       }
     }
@@ -179,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Forgot password
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed('/forgot-password');
+                    context.go('/forgot-password');
                   },
                   child: const Text('Forgot Password?'),
                 ),
@@ -191,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text("Don't have an account? "),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacementNamed('/register');
+                        context.go('/register');
                       },
                       child: const Text('Sign Up'),
                     ),

@@ -69,10 +69,8 @@ class AuthService {
 
       final response = await _apiService.register(request);
 
-      if (response.token != null && response.user != null) {
-        await _saveAuthData(response.token!, response.user!);
-      }
-
+      // Don't save auth data after registration
+      // User needs to verify email and login manually
       return response;
     } catch (e) {
       throw e;
@@ -93,6 +91,18 @@ class AuthService {
     try {
       final request = PasswordResetRequest(email: email);
       await _apiService.requestPasswordReset(request);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<void> resetPassword(String token, String newPassword) async {
+    try {
+      final request = ResetPasswordRequest(
+        token: token,
+        newPassword: newPassword,
+      );
+      await _apiService.resetPassword(request);
     } catch (e) {
       throw e;
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../utils/logger.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -16,25 +17,33 @@ class AuthProvider with ChangeNotifier {
   bool get isEmailVerified => _user?.emailVerified ?? false;
 
   AuthProvider() {
+    AppLogger.info('🚀 Initializing AuthProvider', context: 'AuthProvider');
     _initialize();
   }
 
   void _initialize() {
     _user = _authService.currentUser;
+    if (_user != null) {
+      AppLogger.auth('User already logged in: ${_user!.email}');
+    }
     notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
+    AppLogger.auth('Starting login process for: $email');
     _setLoading(true);
     _setError(null);
 
     try {
       final response = await _authService.login(email, password);
       _user = response.user;
+      AppLogger.logAuthAction('Login', email: email, success: true);
       _setLoading(false);
       notifyListeners();
       return true;
     } catch (e) {
+      AppLogger.logAuthAction('Login', email: email, success: false);
+      AppLogger.error('Login failed', context: 'AuthProvider', error: e);
       _setError(e.toString());
       _setLoading(false);
       return false;
@@ -47,17 +56,14 @@ class AuthProvider with ChangeNotifier {
     String email,
     String password,
   ) async {
+    AppLogger.auth('Starting registration process for: $email');
     _setLoading(true);
     _setError(null);
 
     try {
-      final response = await _authService.register(
-        firstName,
-        lastName,
-        email,
-        password,
-      );
-      _user = response.user;
+      await _authService.register(firstName, lastName, email, password);
+      // Don't set user or save token after registration
+      // User needs to verify email and then login manually
       _setLoading(false);
       notifyListeners();
       return true;
@@ -87,6 +93,25 @@ class AuthProvider with ChangeNotifier {
 
     try {
       await _authService.requestPasswordReset(email);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> sendPasswordResetEmail(String email) async {
+    return await requestPasswordReset(email);
+  }
+
+  Future<bool> resetPassword(String token, String newPassword) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      await _authService.resetPassword(token, newPassword);
       _setLoading(false);
       return true;
     } catch (e) {
