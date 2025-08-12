@@ -62,12 +62,14 @@ class AuthProvider with ChangeNotifier {
 
     try {
       await _authService.register(firstName, lastName, email, password);
-      // Don't set user or save token after registration
-      // User needs to verify email and then login manually
+      // Registration successful - don't save auth data here since we want register -> login flow
+      AppLogger.logAuthAction('Registration', email: email, success: true);
       _setLoading(false);
       notifyListeners();
       return true;
     } catch (e) {
+      AppLogger.logAuthAction('Registration', email: email, success: false);
+      AppLogger.error('Registration failed', context: 'AuthProvider', error: e);
       _setError(e.toString());
       _setLoading(false);
       return false;

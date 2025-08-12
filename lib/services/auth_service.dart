@@ -69,8 +69,9 @@ class AuthService {
 
       final response = await _apiService.register(request);
 
-      // Don't save auth data after registration
-      // User needs to verify email and login manually
+      // Don't save auth data during registration - user must login to get token
+      // This maintains the register -> login flow as requested
+
       return response;
     } catch (e) {
       throw e;
