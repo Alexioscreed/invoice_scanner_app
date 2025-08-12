@@ -7,6 +7,7 @@ class AppConstants {
   static String get invoicesEndpoint => AppConfig.invoicesEndpoint;
   static String get notificationsEndpoint => AppConfig.notificationsEndpoint;
   static String get usersEndpoint => AppConfig.usersEndpoint;
+  static String get analyticsEndpoint => AppConfig.analyticsEndpoint;
 
   // Storage Keys - using AppConfig
   static String get tokenKey => AppConfig.tokenStorageKey;

@@ -13,16 +13,16 @@ class AppLogger {
   static const String _cyan = '\x1B[36m';
   static const String _gray = '\x1B[90m';
 
-  // Emojis for different log levels
-  static const String _debugEmoji = '🐛';
-  static const String _infoEmoji = 'ℹ️';
-  static const String _warningEmoji = '⚠️';
-  static const String _errorEmoji = '❌';
-  static const String _successEmoji = '✅';
-  static const String _networkEmoji = '🌐';
-  static const String _authEmoji = '🔐';
-  static const String _cameraEmoji = '📷';
-  static const String _fileEmoji = '📄';
+  // Log level indicators - using minimal emoji style for cleaner logs
+  static const String _debugEmoji = 'DEBUG';
+  static const String _infoEmoji = 'INFO';
+  static const String _warningEmoji = 'WARN';
+  static const String _errorEmoji = 'ERROR';
+  static const String _successEmoji = 'SUCCESS';
+  static const String _networkEmoji = 'NETWORK';
+  static const String _authEmoji = 'AUTH';
+  static const String _cameraEmoji = 'CAMERA';
+  static const String _fileEmoji = 'FILE';
 
   static void debug(String message, {String? context}) {
     _log(
@@ -123,12 +123,24 @@ class AppLogger {
     String? context,
     Object? error,
   }) {
-    final timestamp = DateTime.now().toIso8601String().substring(11, 23);
-    final contextStr = context != null ? '[$context] ' : '';
-    final errorStr = error != null ? '\n${_red}Error: $error$_reset' : '';
+    // Use a more natural logging format for readability
+    final timestamp = DateTime.now().toIso8601String().substring(
+      11,
+      19,
+    ); // HH:MM:SS only
 
+    // Format the context part
+    final contextPart = context != null ? '[$context] ' : '';
+
+    // Truncate very long messages
+    message = _truncateString(message);
+
+    // Format the error part
+    final errorPart = error != null ? '\n${_red}  → Error: $error$_reset' : '';
+
+    // Clean, readable format
     final formattedMessage =
-        '$color$emoji $timestamp [$level] $contextStr$message$_reset$errorStr';
+        '$color$timestamp | $emoji | $contextPart$message$_reset$errorPart';
 
     developer.log(
       formattedMessage,
@@ -163,26 +175,23 @@ class AppLogger {
     }
   }
 
-  // Network request logging helpers
+  // Network request logging helpers - simplified for cleaner logs
   static void logApiRequest({
     required String method,
     required String url,
     Map<String, dynamic>? headers,
     Object? body,
   }) {
-    final buffer = StringBuffer();
-    buffer.writeln('┌── 🚀 API REQUEST ──────────────────────────────');
-    buffer.writeln('│ Method: $method');
-    buffer.writeln('│ URL: $url');
-    if (headers != null && headers.isNotEmpty) {
-      buffer.writeln('│ Headers: ${_formatJson(headers)}');
+    // Extract endpoint path for cleaner logs
+    Uri uri;
+    try {
+      uri = Uri.parse(url);
+      final endpoint = uri.path;
+      network('$method $endpoint', context: 'Request');
+    } catch (_) {
+      // Fallback to full URL if parsing fails
+      network('$method $url', context: 'Request');
     }
-    if (body != null) {
-      buffer.writeln('│ Body: ${_formatJson(body)}');
-    }
-    buffer.writeln('└───────────────────────────────────────────────');
-
-    network(buffer.toString());
   }
 
   static void logApiResponse({
@@ -192,28 +201,29 @@ class AppLogger {
     required Duration duration,
     Object? response,
   }) {
-    final emoji = statusCode >= 200 && statusCode < 300 ? '✅' : '❌';
-    final buffer = StringBuffer();
-    buffer.writeln('┌── $emoji API RESPONSE ─────────────────────────────');
-    buffer.writeln('│ Method: $method');
-    buffer.writeln('│ URL: $url');
-    buffer.writeln('│ Status: $statusCode');
-    buffer.writeln('│ Duration: ${duration.inMilliseconds}ms');
-    if (response != null) {
-      buffer.writeln('│ Response: ${_formatJson(response)}');
+    // Extract endpoint path for cleaner logs
+    String endpoint;
+    try {
+      final uri = Uri.parse(url);
+      endpoint = uri.path;
+    } catch (_) {
+      endpoint = url;
     }
-    buffer.writeln('└───────────────────────────────────────────────');
+
+    final durationMs = duration.inMilliseconds;
+    final message =
+        '$method $endpoint completed with status $statusCode (${durationMs}ms)';
 
     if (statusCode >= 200 && statusCode < 300) {
-      success(buffer.toString());
+      success(message, context: 'Response');
     } else {
-      error(buffer.toString());
+      error(message, context: 'Response');
     }
   }
 
-  static String _formatJson(Object obj) {
-    final str = obj.toString();
-    return str.length > 200 ? '${str.substring(0, 200)}...' : str;
+  // Used internally for truncating log messages when needed
+  static String _truncateString(String str, [int maxLength = 200]) {
+    return str.length > maxLength ? '${str.substring(0, maxLength)}...' : str;
   }
 
   // Authentication flow logging
@@ -222,19 +232,18 @@ class AppLogger {
     String? email,
     bool success = true,
   }) {
-    final emoji = success ? '✅' : '❌';
-    final status = success ? 'SUCCESS' : 'FAILED';
-    final emailStr = email != null ? ' for $email' : '';
-    auth('$emoji $action $status$emailStr');
+    final status = success ? 'successful' : 'failed';
+    final emailPart = email != null ? ' for user $email' : '';
+    auth('$action attempt $status$emailPart', context: 'AuthFlow');
   }
 
   // Navigation logging
   static void logNavigation(String from, String to) {
-    info('🧭 Navigation: $from → $to', context: 'Router');
+    info('Navigating from $from to $to', context: 'Navigation');
   }
 
   // State changes
   static void logStateChange(String provider, String state) {
-    debug('🔄 State change in $provider: $state', context: 'Provider');
+    debug('State updated in $provider: $state', context: 'State');
   }
 }

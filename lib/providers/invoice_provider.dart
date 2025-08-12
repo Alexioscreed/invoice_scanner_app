@@ -294,4 +294,74 @@ class InvoiceProvider with ChangeNotifier {
   void refresh() {
     loadInvoices();
   }
+
+  // Added method to fix undefined_method error
+  List<Invoice> getFilteredInvoices({String? searchQuery, String? category}) {
+    if ((searchQuery == null || searchQuery.isEmpty) && category == null) {
+      return _filteredInvoices;
+    }
+
+    return _filteredInvoices.where((invoice) {
+      bool matchesSearch = true;
+      bool matchesCategory = true;
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        final query = searchQuery.toLowerCase();
+        matchesSearch =
+            invoice.invoiceNumber.toLowerCase().contains(query) ||
+            invoice.vendorName.toLowerCase().contains(query) ||
+            (invoice.description?.toLowerCase().contains(query) ?? false);
+      }
+
+      if (category != null) {
+        matchesCategory = invoice.category == category;
+      }
+
+      return matchesSearch && matchesCategory;
+    }).toList();
+  }
+
+  // Added method to fix undefined_method error
+  List<String> getCategories() {
+    final categories = _invoices
+        .map((invoice) => invoice.category)
+        .where((category) => category != null && category.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+
+    categories.sort();
+    return categories;
+  }
+
+  // Added method to fix undefined_method error
+  Future<Invoice?> addInvoice({
+    required String invoiceNumber,
+    required String vendorName,
+    required double totalAmount,
+    required String currency,
+    required DateTime invoiceDate,
+    DateTime? dueDate,
+    String? category,
+    String? status,
+    File? file,
+  }) async {
+    final invoice = Invoice(
+      invoiceNumber: invoiceNumber,
+      vendorName: vendorName,
+      invoiceDate: invoiceDate,
+      dueDate: dueDate,
+      totalAmount: totalAmount,
+      currency: currency,
+      category: category,
+      status: status ?? 'pending',
+      processingStatus: ProcessingStatus.PENDING,
+    );
+
+    if (file != null) {
+      return uploadInvoiceFile(file);
+    } else {
+      return createInvoice(invoice);
+    }
+  }
 }

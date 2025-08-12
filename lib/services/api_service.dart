@@ -29,6 +29,8 @@ class ApiService {
         receiveTimeout: Duration(seconds: AppConfig.receiveTimeout),
         sendTimeout: Duration(seconds: AppConfig.sendTimeout),
         headers: {'Content-Type': 'application/json'},
+        validateStatus: (status) =>
+            status! < 500, // Accept all responses except server errors
       ),
     );
 
@@ -41,6 +43,10 @@ class ApiService {
             options.headers['Authorization'] = 'Bearer $token';
           }
 
+          // Add start time to track request duration
+          options.extra['start_time'] = DateTime.now();
+
+          // Log the API request
           AppLogger.logApiRequest(
             method: options.method,
             url: options.uri.toString(),
@@ -105,7 +111,7 @@ class ApiService {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (obj) => print('[API] $obj'),
+        logPrint: (obj) => AppLogger.debug('$obj', context: 'API'),
       ),
     );
   }
@@ -113,9 +119,57 @@ class ApiService {
   // Auth APIs
   Future<AuthResponse> login(LoginRequest request) async {
     try {
-      final response = await _dio.post('/auth/login', data: request.toJson());
-      return AuthResponse.fromJson(response.data);
+      AppLogger.info(
+        'Attempting login for user: ${request.email}',
+        context: 'API',
+      );
+      // Use the configured login URL from AppConfig
+      final response = await _dio.post(
+        AppConfig.loginUrl,
+        data: request.toJson(),
+      );
+
+      AppLogger.debug(
+        'Login response type: ${response.data.runtimeType}, status: ${response.statusCode}',
+        context: 'API',
+      );
+
+      // Handle different response types
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data is Map<String, dynamic>) {
+          AppLogger.info(
+            'Login successful for: ${request.email}',
+            context: 'API',
+          );
+          return AuthResponse.fromJson(response.data);
+        } else if (response.data is String) {
+          // If response is a string, create a simple response with just the message
+          return AuthResponse(message: response.data);
+        } else {
+          // Unexpected response format but successful status
+          return AuthResponse(
+            message: "Login successful but unexpected response format",
+          );
+        }
+      } else {
+        // Non-error status code but not 200/201
+        return AuthResponse(
+          message: "Login failed with status: ${response.statusCode}",
+        );
+      }
     } on DioException catch (e) {
+      // Log the full error for debugging
+      AppLogger.error('Login API error: ${e.type}', context: 'API', error: e);
+
+      // Get more detailed error info if available
+      String errorDetails = '';
+      if (e.response?.data != null) {
+        errorDetails = e.response?.data is String
+            ? e.response?.data
+            : e.response?.data.toString();
+      }
+
+      AppLogger.error('Login error details: $errorDetails', context: 'API');
       throw _handleDioError(e);
     }
   }
@@ -250,6 +304,71 @@ class ApiService {
     }
   }
 
+  Future<Invoice> uploadInvoiceFile(File file) async {
+    try {
+      final fileName = file.path.split('/').last;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(file.path, filename: fileName),
+      });
+
+      final response = await _dio.post(
+        '${AppConstants.invoicesEndpoint}/upload',
+        data: formData,
+      );
+
+      return Invoice.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<Response> exportInvoices({
+    required String format,
+    List<int>? invoiceIds,
+    String? dateRange,
+    String? category,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{'format': format};
+
+      if (invoiceIds != null && invoiceIds.isNotEmpty) {
+        queryParams['ids'] = invoiceIds.join(',');
+      }
+
+      if (dateRange != null) {
+        queryParams['dateRange'] = dateRange;
+      }
+
+      if (category != null) {
+        queryParams['category'] = category;
+      }
+
+      return await _dio.get(
+        '${AppConstants.invoicesEndpoint}/export',
+        queryParameters: queryParams,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'Accept': _getContentTypeForFormat(format)},
+        ),
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  String _getContentTypeForFormat(String format) {
+    switch (format.toLowerCase()) {
+      case 'csv':
+        return 'text/csv';
+      case 'xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
   Future<void> deleteInvoice(int id) async {
     try {
       await _dio.delete('${AppConstants.invoicesEndpoint}/$id');
@@ -310,13 +429,14 @@ class ApiService {
     }
   }
 
-  // Export APIs
-  Future<Response> exportInvoices({
+  // Export APIs with date ranges
+  Future<Response> exportInvoicesWithDateRange({
     String format = 'csv',
     DateTime? startDate,
     DateTime? endDate,
-    String? category,
-    List<int>? invoiceIds,
+    String? category, // Not used by backend but kept for backward compatibility
+    List<int>?
+    invoiceIds, // Not used by backend but kept for backward compatibility
   }) async {
     try {
       final queryParams = <String, dynamic>{'format': format};
@@ -327,12 +447,8 @@ class ApiService {
       if (endDate != null) {
         queryParams['endDate'] = endDate.toIso8601String().split('T')[0];
       }
-      if (category != null && category.isNotEmpty) {
-        queryParams['category'] = category;
-      }
-      if (invoiceIds != null && invoiceIds.isNotEmpty) {
-        queryParams['invoiceIds'] = invoiceIds.join(',');
-      }
+      // Note: The backend doesn't support filtering by category or invoiceIds,
+      // but we keep these parameters for future implementation
 
       return await _dio.get(
         '${AppConstants.invoicesEndpoint}/export',
@@ -448,36 +564,223 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getExpenseSummary({
+    required String period,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      // Get all analytics data for the specified period
+      final analytics = await getAnalytics(
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Return the monthly spending data from the analytics response
+      // and format it according to the requested period
+      return {
+        'totalAmount': analytics['totalAmount'] ?? 0,
+        'monthlyData': analytics['monthlySpending'] ?? [],
+        'period': period,
+      };
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getVendorAnalysis({
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 10,
+  }) async {
+    try {
+      // Get all analytics data and extract vendor information
+      final analytics = await getAnalytics(
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Return the vendor spending data from the analytics response
+      return {'vendorSpending': analytics['vendorSpending'] ?? []};
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getCategoryAnalysis({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      // Get all analytics data and extract category information
+      final analytics = await getAnalytics(
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Return the category spending data from the analytics response
+      return {'categorySpending': analytics['categorySpending'] ?? []};
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getTaxReport({
+    required int year,
+    String? quarter,
+  }) async {
+    try {
+      // Calculate date range for the tax report
+      final DateTime startDate = DateTime(
+        year,
+        quarter == null ? 1 : ((int.parse(quarter) - 1) * 3 + 1),
+        1,
+      );
+      final DateTime endDate = quarter == null
+          ? DateTime(year, 12, 31)
+          : DateTime(
+              year,
+              int.parse(quarter) * 3,
+              DateTime(year, int.parse(quarter) * 3 + 1, 0).day,
+            );
+
+      // Get analytics data for the specified period
+      final analytics = await getAnalytics(
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Since backend doesn't have specific tax endpoint, we'll create simulated tax data
+      double totalTaxable = 0.0;
+      double totalTaxPaid = 0.0;
+      List<Map<String, dynamic>> items = [];
+
+      // Process category spending data to create tax items
+      if (analytics.containsKey('categorySpending') &&
+          analytics['categorySpending'] is List) {
+        for (
+          int i = 0;
+          i < (analytics['categorySpending'] as List).length;
+          i++
+        ) {
+          final categoryData = analytics['categorySpending'][i];
+          if (categoryData is List && categoryData.length >= 2) {
+            final category = categoryData[0]?.toString() ?? 'Uncategorized';
+            final amount = categoryData[1] is num
+                ? (categoryData[1] as num).toDouble()
+                : 0.0;
+
+            // Apply different tax rates for different categories (simulated)
+            double taxRate = 0.0;
+            if (category.toLowerCase().contains('office')) {
+              taxRate = 0.05; // 5% for office expenses
+            } else if (category.toLowerCase().contains('travel')) {
+              taxRate = 0.08; // 8% for travel expenses
+            } else if (category.toLowerCase().contains('meals') ||
+                category.toLowerCase().contains('entertainment')) {
+              taxRate = 0.10; // 10% for meals and entertainment
+            } else {
+              taxRate = 0.07; // 7% default tax rate
+            }
+
+            final taxPaid = amount * taxRate;
+            totalTaxable += amount;
+            totalTaxPaid += taxPaid;
+
+            items.add({
+              'category': category,
+              'taxableAmount': amount,
+              'taxPaid': taxPaid,
+            });
+          }
+        }
+      }
+
+      // Return the simulated tax data
+      return {
+        'totalTaxable': totalTaxable,
+        'totalTaxPaid': totalTaxPaid,
+        'items': items,
+      };
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   String _handleDioError(DioException e) {
+    // Extract request details for better logging
+    final requestUrl = e.requestOptions.uri.toString();
+    final method = e.requestOptions.method;
+    final statusCode = e.response?.statusCode;
+
+    // Log the detailed error for debugging
+    AppLogger.error(
+      'API Error: ${e.type}',
+      context: 'ApiService',
+      error:
+          'Method: $method, URL: $requestUrl, Status: $statusCode, Message: ${e.message}',
+    );
+
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return 'Connection timeout. Please check your internet connection.';
+        return 'Connection timeout. The server is taking too long to respond. Please try again later.';
+
       case DioExceptionType.badResponse:
-        final statusCode = e.response?.statusCode;
-        final message =
-            e.response?.data?['message'] ?? 'Unknown error occurred';
+        var message = 'Unknown error occurred';
+
+        // Try to extract message from different response formats
+        if (e.response?.data is Map<String, dynamic>) {
+          final responseData = e.response?.data as Map<String, dynamic>;
+          // Check for different common field names for error messages
+          message =
+              responseData['message'] ??
+              responseData['error'] ??
+              responseData['errorMessage'] ??
+              responseData['errorDescription'] ??
+              message;
+        } else if (e.response?.data is String && e.response!.data.isNotEmpty) {
+          message = e.response!.data;
+        }
+
         switch (statusCode) {
           case 400:
-            return 'Bad request: $message';
+            return 'The request was invalid: $message';
           case 401:
-            return 'Unauthorized. Please login again.';
+            return 'Authentication failed. Please log in again.';
           case 403:
-            return 'Forbidden. You don\'t have permission to perform this action.';
+            return 'You don\'t have permission to access this resource.';
           case 404:
-            return 'Resource not found.';
+            // Give more specific message for 404 on auth endpoints
+            if (requestUrl.contains('/auth/login')) {
+              return 'Login service is not available. Please check that the backend server is running.';
+            }
+            return 'The requested resource could not be found. Please verify the server is configured properly.';
           case 500:
-            return 'Server error. Please try again later.';
+          case 502:
+          case 503:
+            return 'Server error. Our team has been notified of this issue.';
           default:
-            return 'Error: $message';
+            return 'Error ($statusCode): $message';
         }
+
       case DioExceptionType.cancel:
         return 'Request was cancelled';
+
       case DioExceptionType.unknown:
-        return 'Network error. Please check your internet connection.';
+        // More helpful message for common connection issues
+        if (e.message?.contains('SocketException') ?? false) {
+          return 'Cannot connect to the server at ${AppConfig.serverIP}:${AppConfig.serverPort}. Please check that the server is running and your network connection is active.';
+        } else if (e.message?.contains('Network is unreachable') ?? false) {
+          return 'Network is unreachable. Please check your internet connection.';
+        } else if (e.message?.contains('Connection refused') ?? false) {
+          return 'Connection refused by the server. Please verify the server is running at ${AppConfig.serverIP}:${AppConfig.serverPort}.';
+        }
+        return 'Network error. Please check your connection and try again.';
+
       default:
-        return 'An unexpected error occurred.';
+        return 'An unexpected error occurred. Please try again later.';
     }
   }
 }

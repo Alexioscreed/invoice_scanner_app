@@ -17,7 +17,10 @@ class AuthProvider with ChangeNotifier {
   bool get isEmailVerified => _user?.emailVerified ?? false;
 
   AuthProvider() {
-    AppLogger.info('🚀 Initializing AuthProvider', context: 'AuthProvider');
+    AppLogger.info(
+      'Initializing authentication service',
+      context: 'AuthProvider',
+    );
     _initialize();
   }
 
@@ -36,15 +39,36 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final response = await _authService.login(email, password);
-      _user = response.user;
-      AppLogger.logAuthAction('Login', email: email, success: true);
-      _setLoading(false);
-      notifyListeners();
-      return true;
+
+      // Check if login was successful by verifying we have a user and token
+      if (response.user != null && response.token != null) {
+        _user = response.user;
+        AppLogger.logAuthAction('Login', email: email, success: true);
+        _setLoading(false);
+        notifyListeners();
+        return true;
+      } else {
+        // We got a response but no user/token - likely an error message
+        String errorMsg = response.message ?? "Authentication failed";
+        AppLogger.logAuthAction('Login', email: email, success: false);
+        _setError(errorMsg);
+        _setLoading(false);
+        return false;
+      }
     } catch (e) {
       AppLogger.logAuthAction('Login', email: email, success: false);
       AppLogger.error('Login failed', context: 'AuthProvider', error: e);
-      _setError(e.toString());
+
+      // Provide a more user-friendly error message
+      String errorMsg =
+          "Connection failed. Please check your network and try again.";
+      if (e.toString().contains("404")) {
+        errorMsg = "Login service not available. Please try again later.";
+      } else if (e.toString().contains("401")) {
+        errorMsg = "Invalid email or password.";
+      }
+
+      _setError(errorMsg);
       _setLoading(false);
       return false;
     }
@@ -181,7 +205,11 @@ class AuthProvider with ChangeNotifier {
       _user = _authService.currentUser;
       notifyListeners();
     } catch (e) {
-      print('Error refreshing user: $e');
+      AppLogger.error(
+        'Error refreshing user',
+        error: e,
+        context: 'AuthProvider',
+      );
       // If refresh fails, user might be logged out
       if (e.toString().contains('401') ||
           e.toString().contains('Unauthorized')) {

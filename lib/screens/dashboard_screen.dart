@@ -216,6 +216,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
 
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionCard(
+                      title: 'Reports',
+                      icon: Icons.bar_chart,
+                      onTap: () {
+                        context.go('/reporting');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(), // Placeholder
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Container(), // Placeholder
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 32),
 
               // Recent invoices

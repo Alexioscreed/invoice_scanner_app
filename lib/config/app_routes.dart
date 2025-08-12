@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../utils/logger.dart';
 import '../config/app_config.dart';
 
 class AppRoutes {
@@ -60,7 +61,7 @@ class AppRoutes {
   // Debug helper
   static void logNavigation(String from, String to) {
     if (AppConfig.enableDebugLogs) {
-      print('Navigation: $from -> $to');
+      AppLogger.logNavigation(from, to);
     }
   }
 }

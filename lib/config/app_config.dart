@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 
 class AppConfig {
   // Server configuration
-  // IMPORTANT: Change this to your computer's IP address when testing on physical devices
   static const String serverIP = '192.168.1.125'; // Your computer's IP address
   static const int serverPort = 8080;
 
@@ -12,6 +12,7 @@ class AppConfig {
   static String get invoicesEndpoint => '$baseApiUrl/invoices';
   static String get notificationsEndpoint => '$baseApiUrl/notifications';
   static String get usersEndpoint => '$baseApiUrl/users';
+  static String get analyticsEndpoint => '$invoicesEndpoint/analytics';
 
   // Authentication endpoints
   static String get loginUrl => '$authEndpoint/login';
@@ -62,12 +63,9 @@ class AppConfig {
   // Development helpers
   static void printConfig() {
     if (enableDebugLogs && !kReleaseMode) {
-      print('=== App Configuration ===');
-      print('Server IP: $serverIP');
-      print('Server Port: $serverPort');
-      print('Base API URL: $baseApiUrl');
-      print('Is Release Mode: $kReleaseMode');
-      print('========================');
+      // Use the AppLogger instead of print for consistent logging
+      AppLogger.info('Invoice Scanner App Started');
+      AppLogger.debug('API Endpoint: $baseApiUrl');
     }
   }
 

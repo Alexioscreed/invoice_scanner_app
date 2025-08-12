@@ -10,6 +10,7 @@ import 'services/storage_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/invoice_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/analytics_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -21,13 +22,14 @@ import 'screens/invoice_detail_screen.dart';
 import 'screens/add_invoice_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/reporting_screen.dart';
 import 'utils/logger.dart';
 import 'utils/navigation_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  AppLogger.info('🚀 Starting Invoice Scanner App', context: 'Main');
+  AppLogger.info('Starting Invoice Scanner App', context: 'Main');
   AppConfig.printConfig();
 
   // Initialize services
@@ -48,6 +50,7 @@ class InvoiceScannerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => InvoiceProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
@@ -142,6 +145,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/reporting',
+      builder: (context, state) => const ReportingScreen(),
     ),
   ],
 );

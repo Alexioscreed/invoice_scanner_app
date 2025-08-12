@@ -170,7 +170,7 @@ class InvoiceService {
     required String fileName,
   }) async {
     try {
-      final response = await _apiService.exportInvoices(
+      final response = await _apiService.exportInvoicesWithDateRange(
         format: format,
         startDate: startDate,
         endDate: endDate,
@@ -253,6 +253,33 @@ class InvoiceService {
     }
   }
 
+  // Process a document with OCR
+  Future<Invoice> processOcrDocument(String filePath) async {
+    try {
+      // 1. Upload file to server for OCR processing
+      final fileUploadResponse = await _apiService.uploadInvoiceFile(
+        File(filePath),
+      );
+
+      // 2. Poll for processing status
+      Invoice processedInvoice = fileUploadResponse;
+
+      // Wait until processing is complete or failed
+      while (processedInvoice.processingStatus == ProcessingStatus.PENDING ||
+          processedInvoice.processingStatus == ProcessingStatus.PROCESSING) {
+        // Wait before checking again
+        await Future.delayed(const Duration(seconds: 2));
+
+        // Get updated status
+        processedInvoice = await getInvoice(processedInvoice.id!.toInt());
+      }
+
+      return processedInvoice;
+    } catch (e) {
+      throw e;
+    }
+  }
+
   // Delete an invoice by string ID
   Future<void> deleteInvoiceById(String invoiceId) async {
     try {
@@ -266,21 +293,81 @@ class InvoiceService {
   Future<String> exportInvoicesAsFile(
     String format, {
     List<String>? invoiceIds,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? category,
   }) async {
     try {
-      await _apiService.exportInvoices(
+      // Call API to get export data
+      await _apiService.exportInvoicesWithDateRange(
         format: format,
         invoiceIds: invoiceIds?.map((id) => int.parse(id)).toList(),
+        startDate: startDate,
+        endDate: endDate,
+        category: category,
       );
-      // Return a temporary file path (in a real implementation, you'd save the response to a file)
-      return '/tmp/invoices_export.$format';
+
+      // In a real implementation, you'd save the response to a file in the downloads directory
+      final downloadPath =
+          '/storage/downloads/invoices_${DateTime.now().millisecondsSinceEpoch}.$format';
+
+      // Return the path to the downloaded file
+      return downloadPath;
     } catch (e) {
       throw e;
     }
   }
 
-  // Process OCR document
-  Future<Invoice> processOcrDocument(String filePath) async {
+  // Export invoices as CSV
+  Future<String> exportInvoicesAsCsv({
+    List<String>? invoiceIds,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? category,
+  }) async {
+    return exportInvoicesAsFile(
+      'csv',
+      invoiceIds: invoiceIds,
+      startDate: startDate,
+      endDate: endDate,
+      category: category,
+    );
+  }
+
+  // Export invoices as Excel
+  Future<String> exportInvoicesAsExcel({
+    List<String>? invoiceIds,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? category,
+  }) async {
+    return exportInvoicesAsFile(
+      'xlsx',
+      invoiceIds: invoiceIds,
+      startDate: startDate,
+      endDate: endDate,
+      category: category,
+    );
+  }
+
+  // Export invoices as PDF
+  Future<String> exportInvoicesAsPdf({
+    List<String>? invoiceIds,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? category,
+  }) async {
+    return exportInvoicesAsFile(
+      'pdf',
+      invoiceIds: invoiceIds,
+      startDate: startDate,
+      endDate: endDate,
+      category: category,
+    );
+  }
+
+  // Quick OCR document upload
+  Future<Invoice> quickUploadDocument(String filePath) async {
     try {
       final file = File(filePath);
       final invoice = await _apiService.uploadInvoice(file);
