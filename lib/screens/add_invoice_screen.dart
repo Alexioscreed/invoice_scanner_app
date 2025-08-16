@@ -63,6 +63,32 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
       body: SafeArea(
         child: _isProcessing ? _buildProcessingView() : _buildFormView(),
       ),
+      bottomNavigationBar: _isProcessing
+          ? null
+          : Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                top: 8,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save Invoice',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
     );
   }
 
@@ -88,214 +114,184 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTabSelector(),
-                  const SizedBox(height: 24),
-                  _selectedFile != null
-                      ? _buildFilePreview()
-                      : _buildFileSelectionArea(),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Invoice Details',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTabSelector(),
+                const SizedBox(height: 24),
+                _selectedFile != null
+                    ? _buildFilePreview()
+                    : _buildFileSelectionArea(),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+                const Text(
+                  'Invoice Details',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _invoiceNumberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Invoice Number',
+                    prefixIcon: Icon(Icons.numbers),
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _invoiceNumberController,
-                    decoration: const InputDecoration(
-                      labelText: 'Invoice Number',
-                      prefixIcon: Icon(Icons.numbers),
-                      border: OutlineInputBorder(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an invoice number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _vendorNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Vendor Name',
+                    prefixIcon: Icon(Icons.store),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a vendor name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _totalAmountController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Total Amount',
+                          prefixIcon: Icon(Icons.attach_money),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter the total amount';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Please enter a valid number';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter an invoice number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _vendorNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Vendor Name',
-                      prefixIcon: Icon(Icons.store),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a vendor name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _totalAmountController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'Total Amount',
-                            prefixIcon: Icon(Icons.attach_money),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter the total amount';
+                    const SizedBox(width: 16),
+                    Container(
+                      width: 100,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _currency,
+                          items: const [
+                            DropdownMenuItem(value: 'USD', child: Text('USD')),
+                            DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                            DropdownMenuItem(value: 'GBP', child: Text('GBP')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _currency = value;
+                              });
                             }
-                            if (double.tryParse(value) == null) {
-                              return 'Please enter a valid number';
-                            }
-                            return null;
                           },
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Container(
-                        width: 100,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _currency,
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'USD',
-                                child: Text('USD'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'EUR',
-                                child: Text('EUR'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'GBP',
-                                child: Text('GBP'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _currency = value;
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDatePicker(
-                          label: 'Invoice Date',
-                          selectedDate: _invoiceDate,
-                          onDateSelected: (date) {
-                            setState(() {
-                              _invoiceDate = date;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildDatePicker(
-                          label: 'Due Date (Optional)',
-                          selectedDate: _dueDate,
-                          onDateSelected: (date) {
-                            setState(() {
-                              _dueDate = date;
-                            });
-                          },
-                          allowNull: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedCategory,
-                    decoration: const InputDecoration(
-                      labelText: 'Category',
-                      prefixIcon: Icon(Icons.category),
-                      border: OutlineInputBorder(),
                     ),
-                    items: AppConstants.defaultCategories
-                        .map(
-                          (category) => DropdownMenuItem<String>(
-                            value: category,
-                            child: Text(category),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _selectedCategory = value;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _invoiceStatus,
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      prefixIcon: Icon(Icons.pending_actions),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'pending',
-                        child: Text('Pending'),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDatePicker(
+                        label: 'Invoice Date',
+                        selectedDate: _invoiceDate,
+                        onDateSelected: (date) {
+                          setState(() {
+                            _invoiceDate = date;
+                          });
+                        },
                       ),
-                      DropdownMenuItem(value: 'paid', child: Text('Paid')),
-                      DropdownMenuItem(
-                        value: 'overdue',
-                        child: Text('Overdue'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _invoiceStatus = value;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      child: const Text('Save Invoice'),
                     ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDatePicker(
+                        label: 'Due Date (Optional)',
+                        selectedDate: _dueDate,
+                        onDateSelected: (date) {
+                          setState(() {
+                            _dueDate = date;
+                          });
+                        },
+                        allowNull: true,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    prefixIcon: Icon(Icons.category),
+                    border: OutlineInputBorder(),
                   ),
-                ],
-              ),
+                  items: AppConstants.defaultCategories
+                      .map(
+                        (category) => DropdownMenuItem<String>(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedCategory = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _invoiceStatus,
+                  decoration: const InputDecoration(
+                    labelText: 'Status',
+                    prefixIcon: Icon(Icons.pending_actions),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                    DropdownMenuItem(value: 'paid', child: Text('Paid')),
+                    DropdownMenuItem(value: 'overdue', child: Text('Overdue')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _invoiceStatus = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
         );
@@ -356,39 +352,41 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.cloud_upload, size: 48, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text(
-            'Upload invoice document (optional)',
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _pickImageFromGallery,
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Gallery'),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: _pickPDF,
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('PDF'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextButton.icon(
-            onPressed: () => _showBatchUploadDialog(),
-            icon: const Icon(Icons.file_copy),
-            label: const Text('Batch Upload'),
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.cloud_upload, size: 48, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              'Upload invoice document (optional)',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _pickImageFromGallery,
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Gallery'),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: _pickPDF,
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text('PDF'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: () => _showBatchUploadDialog(),
+              icon: const Icon(Icons.file_copy),
+              label: const Text('Batch Upload'),
+            ),
+          ],
+        ),
       ),
     );
   }
