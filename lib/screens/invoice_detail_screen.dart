@@ -56,22 +56,47 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Invoice' : 'Invoice Details'),
+        title: Text(
+          _isEditing ? 'Edit Invoice' : 'Invoice Details',
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B), // Tailwind slate-800
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: const Color(0xFF64748B).withOpacity(0.1),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF3B82F6), // Tailwind blue-500
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           if (!_isEditing)
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(
+                Icons.edit,
+                color: Color(0xFF3B82F6), // Tailwind blue-500
+              ),
               onPressed: () => setState(() => _isEditing = true),
             ),
           if (_isEditing) ...[
-            IconButton(icon: const Icon(Icons.check), onPressed: _saveInvoice),
             IconButton(
-              icon: const Icon(Icons.close),
+              icon: const Icon(
+                Icons.check,
+                color: Color(0xFF10B981), // Tailwind emerald-500
+              ),
+              onPressed: _saveInvoice,
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.close,
+                color: Color(0xFFEF4444), // Tailwind red-500
+              ),
               onPressed: () => setState(() {
                 _isEditing = false;
                 _initializeControllers();

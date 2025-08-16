@@ -131,15 +131,31 @@ class _ReportingScreenState extends State<ReportingScreen>
     final themeData = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       appBar: AppBar(
-        title: const Text('Reports & Analytics'),
+        title: const Text(
+          'Reports & Analytics',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B), // Tailwind slate-800
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: const Color(0xFF64748B).withOpacity(0.1),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF3B82F6), // Tailwind blue-500
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(
+              Icons.refresh,
+              color: Color(0xFF10B981), // Tailwind emerald-500
+            ),
             tooltip: 'Refresh Data',
             onPressed: () {
               final provider = Provider.of<AnalyticsProvider>(
@@ -150,7 +166,10 @@ class _ReportingScreenState extends State<ReportingScreen>
             },
           ),
           IconButton(
-            icon: const Icon(Icons.date_range),
+            icon: const Icon(
+              Icons.date_range,
+              color: Color(0xFF3B82F6), // Tailwind blue-500
+            ),
             tooltip: 'Select Date Range',
             onPressed: _selectDateRange,
           ),
@@ -158,6 +177,18 @@ class _ReportingScreenState extends State<ReportingScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          labelColor: const Color(0xFF3B82F6), // Tailwind blue-500
+          unselectedLabelColor: const Color(0xFF64748B), // Tailwind slate-500
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+          ),
+          indicatorColor: const Color(0xFF3B82F6), // Tailwind blue-500
+          indicatorWeight: 3,
           tabs: const [
             Tab(text: 'Expense Summary'),
             Tab(text: 'Vendor Analysis'),

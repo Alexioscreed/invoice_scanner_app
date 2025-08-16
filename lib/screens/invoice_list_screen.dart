@@ -32,27 +32,49 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       appBar: AppBar(
-        title: const Text('Invoices'),
+        title: const Text(
+          'Invoices',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B), // Tailwind slate-800
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: const Color(0xFF64748B).withOpacity(0.1),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF3B82F6), // Tailwind blue-500
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(
+              Icons.search,
+              color: Color(0xFF3B82F6), // Tailwind blue-500
+            ),
             onPressed: () {
               _showSearchDialog();
             },
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(
+              Icons.filter_list,
+              color: Color(0xFF3B82F6), // Tailwind blue-500
+            ),
             onPressed: () {
               _showFilterDialog();
             },
           ),
           IconButton(
-            icon: const Icon(Icons.sort),
+            icon: const Icon(
+              Icons.sort,
+              color: Color(0xFF3B82F6), // Tailwind blue-500
+            ),
             onPressed: () {
               _showSortDialog();
             },
@@ -73,23 +95,76 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.receipt_long, size: 70, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF), // Tailwind blue-50
+                        borderRadius: BorderRadius.circular(60),
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long,
+                        size: 60,
+                        color: Color(0xFF3B82F6), // Tailwind blue-500
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     const Text(
                       'No invoices found',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1E293B), // Tailwind slate-800
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text('Add your first invoice to get started'),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.push('/add-invoice');
-                      },
-                      child: const Text('Add Invoice'),
+                    const Text(
+                      'Add your first invoice to get started',
+                      style: TextStyle(
+                        color: Color(0xFF64748B), // Tailwind slate-500
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF3B82F6), // Tailwind blue-500
+                            Color(0xFF1D4ED8), // Tailwind blue-700
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          context.push('/add-invoice');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Add Invoice',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),

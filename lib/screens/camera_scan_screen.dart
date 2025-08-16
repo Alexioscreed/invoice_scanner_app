@@ -58,11 +58,28 @@ class _CameraScanScreenState extends State<CameraScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan Invoice'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Scan Invoice',
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF1E293B), // Tailwind slate-800
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          if (_imagePath != null)
+            IconButton(
+              icon: const Icon(
+                Icons.check,
+                color: Color(0xFF10B981), // Tailwind emerald-500
+              ),
+              onPressed: _processImage,
+            ),
+        ],
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF1E293B), // Tailwind slate-800
       body: _buildBody(),
     );
   }

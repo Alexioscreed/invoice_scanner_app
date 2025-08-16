@@ -45,18 +45,40 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       appBar: AppBar(
-        title: const Text('Add Invoice'),
+        title: const Text(
+          'Add Invoice',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B), // Tailwind slate-800
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: const Color(0xFF64748B).withOpacity(0.1),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF3B82F6), // Tailwind blue-500
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           if (!_isProcessing)
             TextButton.icon(
               onPressed: _submitForm,
-              icon: const Icon(Icons.save),
-              label: const Text('Save'),
+              icon: const Icon(
+                Icons.save,
+                color: Color(0xFF3B82F6), // Tailwind blue-500
+              ),
+              label: const Text(
+                'Save',
+                style: TextStyle(
+                  color: Color(0xFF3B82F6), // Tailwind blue-500
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
         ],
       ),
@@ -65,12 +87,22 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
       ),
       bottomNavigationBar: _isProcessing
           ? null
-          : Padding(
+          : Container(
               padding: EdgeInsets.only(
                 left: 16,
                 right: 16,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 16,
                 top: 8,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x1A64748B), // Tailwind slate-500 with opacity
+                    blurRadius: 8,
+                    offset: Offset(0, -2),
+                  ),
+                ],
               ),
               child: SizedBox(
                 width: double.infinity,
@@ -78,13 +110,19 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                 child: ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(
+                      0xFF3B82F6,
+                    ), // Tailwind blue-500
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: const Text(
                     'Save Invoice',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -97,14 +135,27 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(),
+          const CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Color(0xFF3B82F6), // Tailwind blue-500
+            ),
+          ),
           const SizedBox(height: 20),
           const Text(
             'Processing Invoice...',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B), // Tailwind slate-800
+            ),
           ),
           const SizedBox(height: 8),
-          const Text('This may take a moment'),
+          const Text(
+            'This may take a moment',
+            style: TextStyle(
+              color: Color(0xFF64748B), // Tailwind slate-500
+            ),
+          ),
         ],
       ),
     );
@@ -127,19 +178,52 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                     ? _buildFilePreview()
                     : _buildFileSelectionArea(),
                 const SizedBox(height: 24),
-                const Divider(),
+                const Divider(color: Color(0xFFE2E8F0)), // Tailwind slate-200
                 const SizedBox(height: 16),
                 const Text(
                   'Invoice Details',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B), // Tailwind slate-800
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _invoiceNumberController,
                   decoration: const InputDecoration(
                     labelText: 'Invoice Number',
-                    prefixIcon: Icon(Icons.numbers),
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(
+                      color: Color(0xFF64748B), // Tailwind slate-500
+                    ),
+                    prefixIcon: Icon(
+                      Icons.numbers,
+                      color: Color(0xFF3B82F6), // Tailwind blue-500
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(
+                        color: Color(0xFFE2E8F0), // Tailwind slate-200
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(
+                        color: Color(0xFFE2E8F0), // Tailwind slate-200
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(
+                        color: Color(0xFF3B82F6), // Tailwind blue-500
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  style: const TextStyle(
+                    color: Color(0xFF1E293B), // Tailwind slate-800
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -153,8 +237,37 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                   controller: _vendorNameController,
                   decoration: const InputDecoration(
                     labelText: 'Vendor Name',
-                    prefixIcon: Icon(Icons.store),
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(
+                      color: Color(0xFF64748B), // Tailwind slate-500
+                    ),
+                    prefixIcon: Icon(
+                      Icons.store,
+                      color: Color(0xFF3B82F6), // Tailwind blue-500
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(
+                        color: Color(0xFFE2E8F0), // Tailwind slate-200
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(
+                        color: Color(0xFFE2E8F0), // Tailwind slate-200
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      borderSide: BorderSide(
+                        color: Color(0xFF3B82F6), // Tailwind blue-500
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  style: const TextStyle(
+                    color: Color(0xFF1E293B), // Tailwind slate-800
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {

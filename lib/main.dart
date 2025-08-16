@@ -61,23 +61,125 @@ class InvoiceScannerApp extends StatelessWidget {
               primarySwatch: Colors.blue,
               useMaterial3: true,
               colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.blue,
+                seedColor: const Color(0xFF3B82F6), // Tailwind blue-500
                 brightness: Brightness.light,
+                primary: const Color(0xFF3B82F6), // Tailwind blue-500
+                onPrimary: Colors.white,
+                secondary: const Color(0xFF10B981), // Tailwind emerald-500
+                onSecondary: Colors.white,
+                surface: Colors.white,
+                onSurface: const Color(0xFF1E293B), // Tailwind slate-800
+                surfaceContainerHighest: const Color(
+                  0xFFF8FAFC,
+                ), // Tailwind slate-50
+                outline: const Color(0xFFE2E8F0), // Tailwind slate-200
               ),
-              appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-              cardTheme: const CardThemeData(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
+              scaffoldBackgroundColor: const Color(
+                0xFFF8FAFC,
+              ), // Tailwind slate-50
+              appBarTheme: const AppBarTheme(
+                centerTitle: false,
+                elevation: 0,
+                backgroundColor: Colors.white,
+                foregroundColor: Color(0xFF1E293B), // Tailwind slate-800
+                shadowColor: Color(
+                  0x1A64748B,
+                ), // Tailwind slate-500 with opacity
+                surfaceTintColor: Colors.transparent,
+              ),
+              cardTheme: CardThemeData(
+                elevation: 0,
+                color: Colors.white,
+                shadowColor: const Color(0xFF64748B).withOpacity(0.1),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
                 ),
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                  elevation: 2,
+                  backgroundColor: const Color(0xFF3B82F6), // Tailwind blue-500
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
                   ),
                 ),
+              ),
+              inputDecorationTheme: const InputDecorationTheme(
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderSide: BorderSide(
+                    color: Color(0xFFE2E8F0), // Tailwind slate-200
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderSide: BorderSide(
+                    color: Color(0xFFE2E8F0), // Tailwind slate-200
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                  borderSide: BorderSide(
+                    color: Color(0xFF3B82F6), // Tailwind blue-500
+                    width: 2,
+                  ),
+                ),
+                labelStyle: TextStyle(
+                  color: Color(0xFF64748B), // Tailwind slate-500
+                ),
+                prefixIconColor: Color(0xFF3B82F6), // Tailwind blue-500
+                suffixIconColor: Color(0xFF64748B), // Tailwind slate-500
+              ),
+              textTheme: const TextTheme(
+                displayLarge: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w700,
+                ),
+                displayMedium: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w600,
+                ),
+                headlineLarge: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w600,
+                ),
+                headlineMedium: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w600,
+                ),
+                titleLarge: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w600,
+                ),
+                titleMedium: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w500,
+                ),
+                bodyLarge: TextStyle(
+                  color: Color(0xFF334155), // Tailwind slate-700
+                ),
+                bodyMedium: TextStyle(
+                  color: Color(0xFF64748B), // Tailwind slate-500
+                ),
+                labelLarge: TextStyle(
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              dividerColor: const Color(0xFFE2E8F0), // Tailwind slate-200
+              iconTheme: const IconThemeData(
+                color: Color(0xFF3B82F6), // Tailwind blue-500
+              ),
+              primaryIconTheme: const IconThemeData(
+                color: Color(0xFF3B82F6), // Tailwind blue-500
               ),
             ),
             routerConfig: _router,

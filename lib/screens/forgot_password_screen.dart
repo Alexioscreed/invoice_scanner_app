@@ -45,18 +45,54 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             context: context,
             barrierDismissible: false,
             builder: (context) => AlertDialog(
-              title: const Text('Reset Email Sent'),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                'Reset Email Sent',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E293B), // Tailwind slate-800
+                ),
+              ),
               content: Text(
                 'A password reset link has been sent to ${_emailController.text.trim()}. '
                 'Please check your email and follow the instructions to reset your password.',
+                style: const TextStyle(
+                  color: Color(0xFF64748B), // Tailwind slate-500
+                ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    context.go('/login');
-                  },
-                  child: const Text('OK'),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF3B82F6), // Tailwind blue-500
+                        Color(0xFF1D4ED8), // Tailwind blue-700
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.go('/login');
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

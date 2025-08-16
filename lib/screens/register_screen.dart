@@ -60,6 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -75,8 +76,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(16),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF3B82F6), // Tailwind blue-500
+                          Color(0xFF1D4ED8), // Tailwind blue-700
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF3B82F6).withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       Icons.receipt_long,
@@ -89,13 +104,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Title
                 const Text(
                   'Create Account',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1E293B), // Tailwind slate-800
+                    height: 1.2,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Sign up to get started',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  'Sign up to get started with Invoice Scanner',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF64748B), // Tailwind slate-500
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),

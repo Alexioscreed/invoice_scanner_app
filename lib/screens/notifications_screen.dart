@@ -30,22 +30,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E293B), // Tailwind slate-800
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        shadowColor: const Color(0xFF64748B).withOpacity(0.1),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF3B82F6), // Tailwind blue-500
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.done_all),
+            icon: const Icon(
+              Icons.done_all,
+              color: Color(0xFF10B981), // Tailwind emerald-500
+            ),
             tooltip: 'Mark all as read',
             onPressed: () {
               _markAllAsRead();
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete_sweep),
+            icon: const Icon(
+              Icons.delete_sweep,
+              color: Color(0xFFEF4444), // Tailwind red-500
+            ),
             tooltip: 'Clear all',
             onPressed: () {
               _showClearConfirmation();
