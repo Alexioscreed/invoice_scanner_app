@@ -23,7 +23,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
 
   DateTime _invoiceDate = DateTime.now();
   DateTime? _dueDate;
-  String _selectedCategory = 'Other';
+  String _selectedCategory = 'Other'; // Use a valid default category
   String _currency = 'USD';
   File? _selectedFile;
   bool _isProcessing = false;
@@ -67,14 +67,16 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
         actions: [
           if (!_isProcessing)
             TextButton.icon(
-              onPressed: _submitForm,
-              icon: const Icon(
-                Icons.save,
-                color: Color(0xFF3B82F6), // Tailwind blue-500
+              onPressed: _selectedFile != null
+                  ? _processUploadedFile
+                  : _submitForm,
+              icon: Icon(
+                _selectedFile != null ? Icons.auto_fix_high : Icons.save,
+                color: const Color(0xFF3B82F6), // Tailwind blue-500
               ),
-              label: const Text(
-                'Save',
-                style: TextStyle(
+              label: Text(
+                _selectedFile != null ? 'Process' : 'Save',
+                style: const TextStyle(
                   color: Color(0xFF3B82F6), // Tailwind blue-500
                   fontWeight: FontWeight.w600,
                 ),
@@ -120,9 +122,12 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Save Invoice',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  child: Text(
+                    _selectedFile != null ? 'Save Invoice' : 'Save Invoice',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -151,9 +156,35 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'This may take a moment',
+            'Extracting data from your document',
             style: TextStyle(
               color: Color(0xFF64748B), // Tailwind slate-500
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF), // Tailwind blue-50
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.auto_fix_high,
+                  color: Color(0xFF3B82F6), // Tailwind blue-500
+                  size: 16,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Using AI to detect invoice details',
+                  style: TextStyle(
+                    color: Color(0xFF3B82F6), // Tailwind blue-500
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -787,6 +818,141 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
             ),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _processUploadedFile() async {
+    if (_selectedFile == null) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      final invoiceProvider = Provider.of<InvoiceProvider>(
+        context,
+        listen: false,
+      );
+
+      // Use the new PDF processing method
+      final extractedData = await invoiceProvider.processInvoiceFile(
+        _selectedFile!,
+      );
+
+      if (extractedData != null && mounted) {
+        setState(() {
+          // Auto-fill form fields with extracted data
+          if (extractedData['invoiceNumber'] != null) {
+            _invoiceNumberController.text = extractedData['invoiceNumber'];
+          }
+
+          if (extractedData['vendorName'] != null) {
+            _vendorNameController.text = extractedData['vendorName'];
+          }
+
+          if (extractedData['totalAmount'] != null) {
+            _totalAmountController.text = extractedData['totalAmount']
+                .toString();
+          }
+
+          if (extractedData['invoiceDate'] != null) {
+            _invoiceDate = extractedData['invoiceDate'];
+          }
+
+          if (extractedData['dueDate'] != null) {
+            _dueDate = extractedData['dueDate'];
+          }
+
+          if (extractedData['category'] != null) {
+            final extractedCategory = extractedData['category'];
+            // Ensure the extracted category is valid, otherwise use 'Other'
+            if (AppConstants.defaultCategories.contains(extractedCategory)) {
+              _selectedCategory = extractedCategory;
+            } else {
+              _selectedCategory = 'Other';
+            }
+          }
+
+          // Update status field with extracted status
+          if (extractedData['status'] != null) {
+            final extractedStatus = extractedData['status'];
+            // Convert backend status to UI format and ensure it's valid
+            String uiStatus = 'pending'; // default
+            if (extractedStatus.toString().toLowerCase() == 'paid') {
+              uiStatus = 'paid';
+            } else if (extractedStatus.toString().toLowerCase() == 'overdue') {
+              uiStatus = 'overdue';
+            } else if (extractedStatus.toString().toLowerCase() == 'pending') {
+              uiStatus = 'pending';
+            }
+            _invoiceStatus = uiStatus;
+          }
+
+          _isProcessing = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Container(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.white, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Invoice data extracted successfully! 🎉',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '📄 Invoice: ${extractedData['invoiceNumber']}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Text(
+                    '🏢 Vendor: ${extractedData['vendorName']}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Text(
+                    '💰 Amount: \$${extractedData['totalAmount']}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Text(
+                    '📂 Category: ${extractedData['category']}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Text(
+                    '📊 Status: ${extractedData['status']}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            backgroundColor: const Color(0xFF10B981), // Tailwind emerald-500
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to process file: $e'),
+            backgroundColor: const Color(0xFFEF4444), // Tailwind red-500
+          ),
+        );
       }
     }
   }
