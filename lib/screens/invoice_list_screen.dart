@@ -34,6 +34,10 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Invoices'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

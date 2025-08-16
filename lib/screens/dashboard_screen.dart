@@ -48,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
                     onPressed: () {
-                      context.go('/notifications');
+                      context.push('/notifications');
                     },
                   ),
                   if (notificationProvider.hasUnread)
@@ -82,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              context.go('/settings');
+              context.push('/settings');
             },
           ),
         ],
@@ -189,7 +189,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.camera_alt,
                       onTap: () {
                         // Redirect to add-invoice since scan route doesn't exist
-                        context.go('/add-invoice');
+                        context.push('/add-invoice');
                       },
                     ),
                   ),
@@ -199,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'Add Manual',
                       icon: Icons.add,
                       onTap: () {
-                        context.go('/add-invoice');
+                        context.push('/add-invoice');
                       },
                     ),
                   ),
@@ -209,7 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'View All',
                       icon: Icons.list,
                       onTap: () {
-                        context.go('/invoices');
+                        context.push('/invoices');
                       },
                     ),
                   ),
@@ -225,7 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: 'Reports',
                       icon: Icons.bar_chart,
                       onTap: () {
-                        context.go('/reporting');
+                        context.push('/reporting');
                       },
                     ),
                   ),
@@ -340,7 +340,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                               onTap: () {
-                                context.go('/invoice-detail/${invoice.id}');
+                                context.push('/invoice-detail/${invoice.id}');
                               },
                             ),
                           ),
@@ -356,7 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Redirect to add-invoice since scan route doesn't exist
-          context.go('/add-invoice');
+          context.push('/add-invoice');
         },
         child: const Icon(Icons.camera_alt),
       ),

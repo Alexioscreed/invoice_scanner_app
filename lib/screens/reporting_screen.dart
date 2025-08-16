@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/analytics_provider.dart';
 import '../widgets/charts/bar_chart.dart';
@@ -132,6 +133,10 @@ class _ReportingScreenState extends State<ReportingScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports & Analytics'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
