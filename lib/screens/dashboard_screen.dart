@@ -185,17 +185,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _ActionCard(
-                      title: 'Scan Invoice',
-                      icon: Icons.camera_alt,
-                      onTap: () {
-                        // Redirect to add-invoice since scan route doesn't exist
-                        context.push('/add-invoice');
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _ActionCard(
                       title: 'Add Manual',
                       icon: Icons.add,
                       onTap: () {
@@ -213,13 +202,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _ActionCard(
                       title: 'Reports',
@@ -228,14 +211,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         context.push('/reporting');
                       },
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(), // Placeholder
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Container(), // Placeholder
                   ),
                 ],
               ),
@@ -352,13 +327,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Redirect to add-invoice since scan route doesn't exist
-          context.push('/add-invoice');
-        },
-        child: const Icon(Icons.camera_alt),
       ),
     );
   }

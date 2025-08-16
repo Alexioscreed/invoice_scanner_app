@@ -87,7 +87,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        context.go('/add-invoice');
+                        context.push('/add-invoice');
                       },
                       child: const Text('Add Invoice'),
                     ),
@@ -180,7 +180,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.go('/add-invoice');
+          context.push('/add-invoice');
         },
         child: const Icon(Icons.add),
       ),
