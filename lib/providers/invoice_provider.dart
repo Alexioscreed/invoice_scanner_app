@@ -71,18 +71,18 @@ class InvoiceProvider with ChangeNotifier {
 
     try {
       final createdInvoice = await _invoiceService.createInvoice(invoice);
-  // Debug log: ensure created invoice returned from backend
-  print('DEBUG: createInvoice returned id=${createdInvoice.id}');
+      // Debug log: ensure created invoice returned from backend
+      print('DEBUG: createInvoice returned id=${createdInvoice.id}');
       _invoices.insert(0, createdInvoice);
       _applyFilters();
       _setLoading(false);
       return createdInvoice;
     } catch (e) {
-  final err = e.toString();
-  print('ERROR: createInvoice failed: $err');
-  _setError(err);
-  _setLoading(false);
-  return null;
+      final err = e.toString();
+      print('ERROR: createInvoice failed: $err');
+      _setError(err);
+      _setLoading(false);
+      return null;
     }
   }
 

@@ -306,7 +306,10 @@ class ApiService {
 
   Future<Response> createInvoice(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post(AppConstants.invoicesEndpoint, data: data);
+      final response = await _dio.post(
+        AppConstants.invoicesEndpoint,
+        data: data,
+      );
       // Ensure successful status before returning raw response for parsing
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response;
@@ -314,7 +317,9 @@ class ApiService {
 
       // Convert error payload into an exception with message
       final msg = response.data is Map<String, dynamic>
-          ? (response.data['message'] ?? response.data['error'] ?? response.data.toString())
+          ? (response.data['message'] ??
+                response.data['error'] ??
+                response.data.toString())
           : response.data.toString();
       throw Exception('API Error (${response.statusCode}): $msg');
     } on DioException catch (e) {
@@ -334,7 +339,9 @@ class ApiService {
       }
 
       final msg = response.data is Map<String, dynamic>
-          ? (response.data['message'] ?? response.data['error'] ?? response.data.toString())
+          ? (response.data['message'] ??
+                response.data['error'] ??
+                response.data.toString())
           : response.data.toString();
       throw Exception('API Error (${response.statusCode}): $msg');
     } on DioException catch (e) {

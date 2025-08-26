@@ -292,7 +292,9 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> with RouteAware {
                     ),
                     onTap: () async {
                       if (invoice.id != null) {
-                        final result = await context.push('/invoice-detail/${invoice.id}');
+                        final result = await context.push(
+                          '/invoice-detail/${invoice.id}',
+                        );
                         if (result == true) {
                           // Rebuild to show provider's updated list without forcing reload
                           setState(() {});
@@ -312,7 +314,8 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> with RouteAware {
                       invoice.vendorName,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Flexible( // Added Flexible widget
+                    subtitle: Flexible(
+                      // Added Flexible widget
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +323,9 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> with RouteAware {
                           const SizedBox(height: 4),
                           Text('Invoice #: ${invoice.invoiceNumber}'),
                           const SizedBox(height: 2),
-                          Text('Date: ${DateFormatter.formatDate(invoice.invoiceDate)}'),
+                          Text(
+                            'Date: ${DateFormatter.formatDate(invoice.invoiceDate)}',
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             'Status: ${invoice.status.toUpperCase()}',
@@ -342,50 +347,94 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> with RouteAware {
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min, // Added to prevent overflow
+                      mainAxisSize:
+                          MainAxisSize.min, // Added to prevent overflow
                       children: [
-                        Text(invoice.formattedAmount,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 16)),
-                        Flexible( // Wrapped IconButton in Flexible to prevent overflow
+                        Text(
+                          invoice.formattedAmount,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Flexible(
+                          // Wrapped IconButton in Flexible to prevent overflow
                           child: IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Color(0xFFEF4444)),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Color(0xFFEF4444),
+                            ),
                             tooltip: 'Delete invoice',
-                            padding: EdgeInsets.zero, // Reduced padding to save space
-                            constraints: const BoxConstraints(minHeight: 32, minWidth: 32), // Smaller constraints
+                            padding: EdgeInsets
+                                .zero, // Reduced padding to save space
+                            constraints: const BoxConstraints(
+                              minHeight: 32,
+                              minWidth: 32,
+                            ), // Smaller constraints
                             onPressed: () async {
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: const Text('Delete invoice'),
-                                  content: const Text('Are you sure you want to delete this invoice? This action cannot be undone.'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this invoice? This action cannot be undone.',
+                                  ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
                                       child: const Text('Cancel'),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
-                                      child: const Text('Delete', style: TextStyle(color: Color(0xFFEF4444))),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(
+                                          color: Color(0xFFEF4444),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                               );
 
                               if (confirm == true) {
-                                final invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
+                                final invoiceProvider =
+                                    Provider.of<InvoiceProvider>(
+                                      context,
+                                      listen: false,
+                                    );
                                 final idStr = invoice.id?.toString();
                                 if (idStr == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cannot delete invoice without ID')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Cannot delete invoice without ID',
+                                      ),
+                                    ),
+                                  );
                                   return;
                                 }
-                                final success = await invoiceProvider.deleteInvoice(idStr);
+                                final success = await invoiceProvider
+                                    .deleteInvoice(idStr);
                                 if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invoice deleted')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Invoice deleted'),
+                                    ),
+                                  );
                                   // refresh list
                                   setState(() {});
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(invoiceProvider.error ?? 'Failed to delete invoice')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        invoiceProvider.error ??
+                                            'Failed to delete invoice',
+                                      ),
+                                    ),
+                                  );
                                 }
                               }
                             },

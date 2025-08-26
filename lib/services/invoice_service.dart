@@ -235,15 +235,24 @@ class InvoiceService {
         // try to find the created invoice by querying the invoices list
         // using the invoiceNumber as a best-effort identifier.
         try {
-          final fallbackList = await getInvoices(search: invoice.invoiceNumber, size: 50);
+          final fallbackList = await getInvoices(
+            search: invoice.invoiceNumber,
+            size: 50,
+          );
           final found = fallbackList.content.firstWhere(
-            (inv) => inv.invoiceNumber == invoice.invoiceNumber || inv.vendorName == invoice.vendorName,
-            orElse: () => throw Exception('Created invoice not found after create (parse failed)') ,
+            (inv) =>
+                inv.invoiceNumber == invoice.invoiceNumber ||
+                inv.vendorName == invoice.vendorName,
+            orElse: () => throw Exception(
+              'Created invoice not found after create (parse failed)',
+            ),
           );
           return found;
         } catch (inner) {
           // Re-throw original parsing error if fallback fails
-          throw Exception('Failed to parse create response and fallback lookup failed: $e; $inner');
+          throw Exception(
+            'Failed to parse create response and fallback lookup failed: $e; $inner',
+          );
         }
       }
     } catch (e) {
