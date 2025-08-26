@@ -269,7 +269,27 @@ class ApiService {
         AppConstants.invoicesEndpoint,
         queryParameters: request.toQueryParams(),
       );
-      return PaginatedResponse.fromJson(response.data, Invoice.fromJson);
+
+      // Handle both paginated and simple array responses
+      if (response.data is List) {
+        // Backend returns simple array - convert to paginated format
+        final invoicesList = (response.data as List)
+            .map((item) => Invoice.fromJson(item as Map<String, dynamic>))
+            .toList();
+
+        return PaginatedResponse<Invoice>(
+          content: invoicesList,
+          page: 0,
+          size: invoicesList.length,
+          totalElements: invoicesList.length,
+          totalPages: 1,
+          first: true,
+          last: true,
+        );
+      } else {
+        // Backend returns paginated response
+        return PaginatedResponse.fromJson(response.data, Invoice.fromJson);
+      }
     } on DioException catch (e) {
       throw _handleDioError(e);
     }
@@ -286,7 +306,17 @@ class ApiService {
 
   Future<Response> createInvoice(Map<String, dynamic> data) async {
     try {
-      return await _dio.post(AppConstants.invoicesEndpoint, data: data);
+      final response = await _dio.post(AppConstants.invoicesEndpoint, data: data);
+      // Ensure successful status before returning raw response for parsing
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response;
+      }
+
+      // Convert error payload into an exception with message
+      final msg = response.data is Map<String, dynamic>
+          ? (response.data['message'] ?? response.data['error'] ?? response.data.toString())
+          : response.data.toString();
+      throw Exception('API Error (${response.statusCode}): $msg');
     } on DioException catch (e) {
       throw _handleDioError(e);
     }
@@ -298,7 +328,15 @@ class ApiService {
         '${AppConstants.invoicesEndpoint}/$id',
         data: data,
       );
-      return Invoice.fromJson(response.data);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return Invoice.fromJson(response.data);
+      }
+
+      final msg = response.data is Map<String, dynamic>
+          ? (response.data['message'] ?? response.data['error'] ?? response.data.toString())
+          : response.data.toString();
+      throw Exception('API Error (${response.statusCode}): $msg');
     } on DioException catch (e) {
       throw _handleDioError(e);
     }

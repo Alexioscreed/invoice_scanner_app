@@ -5,17 +5,18 @@ import '../models/invoice.dart';
 import '../providers/invoice_provider.dart';
 
 class InvoiceDetailScreen extends StatefulWidget {
-  final Invoice invoice;
+  final String? invoiceId;
 
-  const InvoiceDetailScreen({super.key, required this.invoice});
+  const InvoiceDetailScreen({super.key, this.invoiceId});
 
   @override
   State<InvoiceDetailScreen> createState() => _InvoiceDetailScreenState();
 }
 
 class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
-  late Invoice _invoice;
+  Invoice? _invoice;
   bool _isEditing = false;
+  bool _isLoading = true;
   final _formKey = GlobalKey<FormState>();
   final _invoiceNumberController = TextEditingController();
   final _vendorController = TextEditingController();
@@ -29,19 +30,79 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _invoice = widget.invoice;
-    _initializeControllers();
+    _loadInvoice();
+  }
+
+  Future<void> _loadInvoice() async {
+    if (widget.invoiceId == null) {
+      // Navigate back if no invoice ID provided
+      if (mounted && context.canPop()) {
+        context.pop();
+      } else if (mounted) {
+        context.go('/invoices');
+      }
+      return;
+    }
+
+    try {
+      final provider = Provider.of<InvoiceProvider>(context, listen: false);
+
+      // First try to find the invoice in the loaded invoices list
+      final invoiceId = int.tryParse(widget.invoiceId!);
+      if (invoiceId != null) {
+        final existingInvoice = provider.invoices
+            .where((invoice) => invoice.id == invoiceId)
+            .firstOrNull;
+
+        if (existingInvoice != null) {
+          setState(() {
+            _invoice = existingInvoice;
+            _isLoading = false;
+          });
+          _initializeControllers();
+          return;
+        }
+      }
+
+      // If not found in local list, try to fetch from backend
+      await provider.loadInvoiceById(widget.invoiceId!);
+
+      if (provider.selectedInvoice != null) {
+        setState(() {
+          _invoice = provider.selectedInvoice;
+          _isLoading = false;
+        });
+        _initializeControllers();
+      } else {
+        // Invoice not found, navigate back
+        if (mounted && context.canPop()) {
+          context.pop();
+        } else if (mounted) {
+          context.go('/invoices');
+        }
+      }
+    } catch (e) {
+      print('Error loading invoice: $e');
+      // Error loading invoice, navigate back
+      if (mounted && context.canPop()) {
+        context.pop();
+      } else if (mounted) {
+        context.go('/invoices');
+      }
+    }
   }
 
   void _initializeControllers() {
-    _invoiceNumberController.text = _invoice.invoiceNumber;
-    _vendorController.text = _invoice.vendorName;
-    _totalAmountController.text = _invoice.totalAmount.toString();
-    _notesController.text = _invoice.notes ?? '';
-    _selectedStatus = _invoice.status;
-    _selectedCategory = _invoice.category ?? 'GENERAL';
-    _invoiceDate = _invoice.invoiceDate;
-    _dueDate = _invoice.dueDate;
+    if (_invoice == null) return;
+
+    _invoiceNumberController.text = _invoice!.invoiceNumber;
+    _vendorController.text = _invoice!.vendorName;
+    _totalAmountController.text = _invoice!.totalAmount.toString();
+    _notesController.text = _invoice!.notes ?? '';
+    _selectedStatus = _invoice!.status;
+    _selectedCategory = _invoice!.category ?? 'GENERAL';
+    _invoiceDate = _invoice!.invoiceDate;
+    _dueDate = _invoice!.dueDate;
   }
 
   @override
@@ -55,6 +116,45 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading spinner while invoice is being loaded
+    if (_isLoading || _invoice == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
+        appBar: AppBar(
+          title: const Text(
+            'Invoice Details',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B), // Tailwind slate-800
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          shadowColor: Color(0xFF64748B).withOpacity(0.1),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Color(0xFF64748B), // Tailwind slate-500
+            ),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/invoices');
+              }
+            },
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Color(0xFF3B82F6),
+            ), // Tailwind blue-500
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC), // Tailwind slate-50
       appBar: AppBar(
@@ -133,7 +233,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Invoice ${_invoice.invoiceNumber}',
+                  'Invoice ${_invoice!.invoiceNumber}',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 _buildStatusChip(_selectedStatus),
@@ -169,10 +269,10 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                 },
               ),
             ] else ...[
-              _buildDetailRow('Vendor', _invoice.vendorName, Icons.business),
+              _buildDetailRow('Vendor', _invoice!.vendorName, Icons.business),
               _buildDetailRow(
                 'Amount',
-                '\$${_invoice.totalAmount.toStringAsFixed(2)}',
+                '\$${_invoice!.totalAmount.toStringAsFixed(2)}',
                 Icons.attach_money,
               ),
             ],
@@ -230,18 +330,18 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
             ] else ...[
               _buildDetailRow(
                 'Category',
-                _invoice.category ?? 'N/A',
+                _invoice!.category ?? 'N/A',
                 Icons.category,
               ),
               _buildDetailRow(
                 'Invoice Date',
-                '${_invoice.invoiceDate.day}/${_invoice.invoiceDate.month}/${_invoice.invoiceDate.year}',
+                '${_invoice!.invoiceDate.day}/${_invoice!.invoiceDate.month}/${_invoice!.invoiceDate.year}',
                 Icons.calendar_today,
               ),
               _buildDetailRow(
                 'Due Date',
-                _invoice.dueDate != null
-                    ? '${_invoice.dueDate!.day}/${_invoice.dueDate!.month}/${_invoice.dueDate!.year}'
+                _invoice!.dueDate != null
+                    ? '${_invoice!.dueDate!.day}/${_invoice!.dueDate!.month}/${_invoice!.dueDate!.year}'
                     : 'N/A',
                 Icons.event,
               ),
@@ -294,7 +394,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
 
     try {
       final updatedInvoice = Invoice(
-        id: _invoice.id,
+        id: _invoice!.id,
         invoiceNumber: _invoiceNumberController.text,
         vendorName: _vendorController.text,
         totalAmount: double.parse(_totalAmountController.text),
@@ -303,9 +403,9 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         invoiceDate: _invoiceDate!,
         dueDate: _dueDate,
         notes: _notesController.text.isEmpty ? null : _notesController.text,
-        lineItems: _invoice.lineItems,
-        filePath: _invoice.filePath,
-        createdAt: _invoice.createdAt,
+        lineItems: _invoice!.lineItems,
+        filePath: _invoice!.filePath,
+        createdAt: _invoice!.createdAt,
         updatedAt: DateTime.now(),
       );
 
@@ -324,6 +424,8 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invoice updated successfully')),
         );
+        // Pop with result so list screen can refresh
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {

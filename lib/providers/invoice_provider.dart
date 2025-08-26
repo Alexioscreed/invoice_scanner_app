@@ -71,14 +71,18 @@ class InvoiceProvider with ChangeNotifier {
 
     try {
       final createdInvoice = await _invoiceService.createInvoice(invoice);
+  // Debug log: ensure created invoice returned from backend
+  print('DEBUG: createInvoice returned id=${createdInvoice.id}');
       _invoices.insert(0, createdInvoice);
       _applyFilters();
       _setLoading(false);
       return createdInvoice;
     } catch (e) {
-      _setError(e.toString());
-      _setLoading(false);
-      return null;
+  final err = e.toString();
+  print('ERROR: createInvoice failed: $err');
+  _setError(err);
+  _setLoading(false);
+  return null;
     }
   }
 
@@ -826,11 +830,9 @@ class InvoiceProvider with ChangeNotifier {
       processingStatus: ProcessingStatus.PENDING,
     );
 
-    if (file != null) {
-      return uploadInvoiceFile(file);
-    } else {
-      return createInvoice(invoice);
-    }
+    // Always use the extracted data instead of backend OCR
+    // This ensures we send the data that was extracted on the frontend
+    return createInvoice(invoice);
   }
 
   // Method to add invoice with extracted data (for compatibility with add_invoice_screen)

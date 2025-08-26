@@ -3,7 +3,7 @@ import '../utils/logger.dart';
 
 class AppConfig {
   // Server configuration
-  static const String serverIP = '192.168.1.125'; // Your computer's IP address
+  static const String serverIP = '192.168.0.206'; // Your computer's IP address
   static const int serverPort = 8080;
 
   // API URLs

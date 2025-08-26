@@ -226,7 +226,26 @@ class InvoiceService {
   Future<Invoice> createInvoice(Invoice invoice) async {
     try {
       final response = await _apiService.createInvoice(invoice.toJson());
-      return Invoice.fromJson(response.data);
+
+      try {
+        // Try to parse the returned invoice JSON
+        return Invoice.fromJson(response.data);
+      } catch (e) {
+        // If parsing failed (server couldn't serialize response),
+        // try to find the created invoice by querying the invoices list
+        // using the invoiceNumber as a best-effort identifier.
+        try {
+          final fallbackList = await getInvoices(search: invoice.invoiceNumber, size: 50);
+          final found = fallbackList.content.firstWhere(
+            (inv) => inv.invoiceNumber == invoice.invoiceNumber || inv.vendorName == invoice.vendorName,
+            orElse: () => throw Exception('Created invoice not found after create (parse failed)') ,
+          );
+          return found;
+        } catch (inner) {
+          // Re-throw original parsing error if fallback fails
+          throw Exception('Failed to parse create response and fallback lookup failed: $e; $inner');
+        }
+      }
     } catch (e) {
       throw e;
     }

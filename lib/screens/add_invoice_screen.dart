@@ -969,7 +969,7 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
           listen: false,
         );
 
-        await invoiceProvider.addInvoice(
+        final created = await invoiceProvider.addInvoice(
           invoiceNumber: _invoiceNumberController.text,
           vendorName: _vendorNameController.text,
           totalAmount: double.parse(_totalAmountController.text),
@@ -980,16 +980,27 @@ class _AddInvoiceScreenState extends State<AddInvoiceScreen> {
           status: _invoiceStatus,
           file: _selectedFile,
         );
-
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invoice saved successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Replace current route so user can't return to a completed add form
-          context.go('/invoices');
+          if (created != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Invoice saved successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Pop with result so invoice list can refresh
+            Navigator.of(context).pop(true);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to save invoice'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            setState(() {
+              _isProcessing = false;
+            });
+          }
         }
       } catch (e) {
         if (mounted) {

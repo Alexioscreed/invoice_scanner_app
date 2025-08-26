@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'config/app_config.dart';
-import 'models/invoice.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
@@ -222,17 +221,7 @@ final GoRouter _router = GoRouter(
       path: '/invoice-detail/:id',
       builder: (context, state) {
         final invoiceId = state.pathParameters['id'];
-        // You would typically fetch the invoice by ID here
-        // For now, creating a dummy invoice
-        final invoice = Invoice(
-          id: int.tryParse(invoiceId ?? '0') ?? 0,
-          invoiceNumber: 'INV-001',
-          vendorName: 'Sample Vendor',
-          invoiceDate: DateTime.now(),
-          totalAmount: 100.0,
-          processingStatus: ProcessingStatus.PENDING,
-        );
-        return InvoiceDetailScreen(invoice: invoice);
+        return InvoiceDetailScreen(invoiceId: invoiceId);
       },
     ),
     GoRoute(
